@@ -1,0 +1,94 @@
+version: '3'
+
+services:
+  wordpress-db:
+    container_name: wordpress-db
+    environment:
+        - MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
+        - MYSQL_DATABASE=$MYSQL_DATABASE
+        - MYSQL_USER=$MYSQL_USER
+        - MYSQL_PASSWORD=$MYSQL_PASSWORD
+    image: 'mysql:5.7'
+    volumes:
+      - dbdata:/var/lib/mysql
+    networks:
+      - db-network
+  wordpress1:
+    depends_on:
+      - wordpress-db
+    image: wordpress:5.4.2-php7.2-apache
+    container_name: wordpress1
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - WORDPRESS_DB_HOST=$WORDPRESS_DB_HOST
+      - WORDPRESS_DB_USER=$MYSQL_USER
+      - WORDPRESS_DB_PASSWORD=$MYSQL_PASSWORD
+      - WORDPRESS_DB_NAME=$MYSQL_DATABASE
+    volumes:
+      - wordpress:/var/www/html
+    networks:
+      - app-network
+      - db-network
+
+  wordpress2:
+    depends_on:
+      - wordpress-db
+    image: wordpress:5.4.2-php7.2-apache
+    container_name: wordpress2
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - WORDPRESS_DB_HOST=$WORDPRESS_DB_HOST
+      - WORDPRESS_DB_USER=$MYSQL_USER
+      - WORDPRESS_DB_PASSWORD=$MYSQL_PASSWORD
+      - WORDPRESS_DB_NAME=$MYSQL_DATABASE
+    volumes:
+      - wordpress:/var/www/html
+    networks:
+      - app-network
+      - db-network
+
+  wordpress3:
+    depends_on:
+      - wordpress-db
+    image: wordpress:5.4.2-php7.2-apache
+    container_name: wordpress3
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - WORDPRESS_DB_HOST=$WORDPRESS_DB_HOST
+      - WORDPRESS_DB_USER=$MYSQL_USER
+      - WORDPRESS_DB_PASSWORD=$MYSQL_PASSWORD
+      - WORDPRESS_DB_NAME=$MYSQL_DATABASE
+    volumes:
+      - wordpress:/var/www/html
+    networks:
+      - app-network
+      - db-network
+
+  webserver:
+    depends_on:
+      - wordpress1
+      - wordpress2
+      - wordpress3
+    image: nginx:1.19.0
+    container_name: webserver
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - wordpress:/usr/share/nginx/html
+      - ./nginx-conf:/etc/nginx/
+    networks:
+      - app-network
+
+volumes:
+  wordpress:
+  dbdata:
+
+networks:
+  app-network:
+    driver: bridge
+  db-network:
+    driver: bridge

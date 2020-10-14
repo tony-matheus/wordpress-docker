@@ -1,16 +1,17 @@
-version: '3'
+version: "3"
 
 services:
   wordpress-db:
+    image: "mysql:5.7"
     container_name: wordpress-db
+    env_file: .env
     environment:
-        - MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
-        - MYSQL_DATABASE=$MYSQL_DATABASE
-        - MYSQL_USER=$MYSQL_USER
-        - MYSQL_PASSWORD=$MYSQL_PASSWORD
-    image: 'mysql:5.7'
+      - MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
+      - MYSQL_DATABASE=$MYSQL_DATABASE
+      - MYSQL_USER=$MYSQL_USER
+      - MYSQL_PASSWORD=$MYSQL_PASSWORD
     volumes:
-      - dbdata:/var/lib/mysql
+      - data:/var/lib/mysql
     networks:
       - db-network
   wordpress1:
@@ -83,9 +84,25 @@ services:
     networks:
       - app-network
 
+  locust_tests:
+    depends_on:
+      - webserver
+    image: grubykarol/locust:0.9.0-python3.6-alpine3.9
+    container_name: locust_tests
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "8089:8089"
+    environment:
+      - ATTACKED_HOST=$ATTACKED_HOST
+    volumes:
+      - ./locust:/locust
+    networks:
+      - app-network
+
 volumes:
   wordpress:
-  dbdata:
+  data:
 
 networks:
   app-network:
